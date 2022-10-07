@@ -1,5 +1,5 @@
 {
-  "name": "template",
+  "name": "vesting-calculator",
   "sources": {
     "dir": "src",
     "subdirs": true

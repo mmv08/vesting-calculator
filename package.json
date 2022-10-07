@@ -1,16 +1,16 @@
 {
-  "name": "safe-vesting-calculator",
+  "name": "vesting-calculator",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@rescript/react": "^0.10.3",
     "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^11.2.7",
-    "@testing-library/user-event": "^12.8.3",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.4.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
-    "web-vitals": "^1.1.2"
+    "web-vitals": "^3.0.3"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -40,6 +40,6 @@
   },
   "devDependencies": {
     "gentype": "^4.5.0",
-    "rescript": "^9.1.4"
+    "rescript": "^10.0.1"
   }
 }
