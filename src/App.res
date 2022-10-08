@@ -10,6 +10,11 @@ let make = () => {
     float_of_string(amount),
     Dates.secondsBetweenDates(Js.Date.fromString(vestingStartDate), Js.Date.make()),
   )
+  let chartData = Vesting.getChartData(
+    Vesting.fromLabel(vestingType),
+    Js.Date.fromString(vestingStartDate),
+    float_of_string(amount),
+  )
 
   <div className="App">
     <h1> {React.string("Vesting calculator")} </h1>
@@ -21,7 +26,12 @@ let make = () => {
         value=amount
         onChange={evt => {
           let value = ReactEvent.Form.target(evt)["value"]
-          setAmount(_prev => value)
+          setAmount(_prev => {
+            switch value {
+            | "" => "0"
+            | _ => value
+            }
+          })
         }}
       />
     </div>
@@ -57,7 +67,7 @@ let make = () => {
       <p> {React.string(`Currently vested: ${Belt.Float.toString(currentlyVested)}`)} </p>
     </div>
     <div style={ReactDOM.Style.make(~display="inline-block", ())}>
-      <Chart />
+      <Chart data={chartData} />
     </div>
   </div>
 }

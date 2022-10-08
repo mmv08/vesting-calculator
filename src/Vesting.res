@@ -1,6 +1,8 @@
 type vesting = Linear | Exponential
+type chartPoint = {label: string, value: float}
 
 let secondsInYear = 365.0 *. 24.0 *. 60.0 *. 60.0
+let secondsInMonth = 30.0 *. 24.0 *. 60.0 *. 60.0
 
 let linearVesting = (totalTokens, ~totalDuration=secondsInYear *. 2.0, durationElapsed) =>
   totalTokens *. durationElapsed /. totalDuration
@@ -30,4 +32,32 @@ let fromLabel = (label: string) => {
   | "Exponential" => Exponential
   | _ => Linear
   }
+}
+
+let getChartData = (
+  vestingType: vesting,
+  ~step: float=secondsInMonth,
+  startDate: Js.Date.t,
+  ~totalDuration=secondsInYear *. 4.0,
+  totalTokens: float,
+) => {
+  let chartData = []
+  let currentPoint = ref(Js.Date.getTime(startDate) /. 1000.0)
+
+  while currentPoint.contents < Js.Date.getTime(startDate) /. 1000.0 +. totalDuration {
+    Js.Array2.push(
+      chartData,
+      {
+        label: Js.Date.toLocaleDateString(Js.Date.fromFloat(currentPoint.contents *. 1000.0)),
+        value: calculateVesting(
+          vestingType,
+          totalTokens,
+          currentPoint.contents -. Js.Date.getTime(startDate) /. 1000.0,
+        ),
+      },
+    )->ignore
+    currentPoint := currentPoint.contents +. step
+  }
+
+  chartData
 }
