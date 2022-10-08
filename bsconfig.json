@@ -10,7 +10,7 @@
   },
   "suffix": ".bs.js",
   "reason": { "react-jsx": 3 },
-  "bs-dependencies": ["@rescript/react"],
+  "bs-dependencies": ["@rescript/react", "@float-capital/rescript-recharts"],
   "warnings": {
     "error": "+101"
   }

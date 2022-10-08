@@ -56,5 +56,8 @@ let make = () => {
     <div>
       <p> {React.string(`Currently vested: ${Belt.Float.toString(currentlyVested)}`)} </p>
     </div>
+    <div style={ReactDOM.Style.make(~display="inline-block", ())}>
+      <Chart />
+    </div>
   </div>
 }
