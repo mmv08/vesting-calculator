@@ -13,10 +13,12 @@ let exponentialVesting = (totalTokens, ~totalDuration=secondsInYear *. 4.0, dura
   Js.Math.pow_float(~base=totalDuration, ~exp=2.0)
 
 let calculateVesting = (vestingType: vesting, totalTokens: float, durationElapsed: float) => {
-  switch vestingType {
+  let amount = switch vestingType {
   | Linear => linearVesting(totalTokens, durationElapsed)
   | Exponential => exponentialVesting(totalTokens, durationElapsed)
   }
+
+  amount > totalTokens ? totalTokens : amount
 }
 
 let toLabel = (vestingType: vesting) => {
@@ -34,30 +36,46 @@ let fromLabel = (label: string) => {
   }
 }
 
-let getChartData = (
-  vestingType: vesting,
+let rec getChartData = (
+  ~currentlyVested=0.0,
   ~step: float=secondsInMonth,
+  ~chartData=[],
+  ~currentPoint=0.0,
+  vestingType: vesting,
   startDate: Js.Date.t,
-  ~totalDuration=secondsInYear *. 4.0,
   totalTokens: float,
-) => {
-  let chartData = []
-  let currentPoint = ref(Js.Date.getTime(startDate) /. 1000.0)
+): array<chartPoint> => {
+  if currentlyVested == totalTokens {
+    chartData
+  } else {
+    let vestingPoint = if currentPoint == 0.0 {
+      Js.Date.getTime(startDate) /. 1000.0
+    } else {
+      currentPoint
+    }
 
-  while currentPoint.contents < Js.Date.getTime(startDate) /. 1000.0 +. totalDuration {
-    Js.Array2.push(
+    let vestedAtPoint = calculateVesting(
+      vestingType,
+      totalTokens,
+      vestingPoint -. Js.Date.getTime(startDate) /. 1000.0,
+    )
+    let newChartData = Belt.Array.concat(
       chartData,
-      {
-        label: Js.Date.toLocaleDateString(Js.Date.fromFloat(currentPoint.contents *. 1000.0)),
-        value: calculateVesting(
-          vestingType,
-          totalTokens,
-          currentPoint.contents -. Js.Date.getTime(startDate) /. 1000.0,
-        ),
-      },
-    )->ignore
-    currentPoint := currentPoint.contents +. step
-  }
+      [
+        {
+          label: Js.Date.toLocaleDateString(Js.Date.fromFloat(vestingPoint *. 1000.0)),
+          value: vestedAtPoint,
+        },
+      ],
+    )
 
-  chartData
+    getChartData(
+      ~currentlyVested=vestedAtPoint,
+      ~chartData=newChartData,
+      ~currentPoint=vestingPoint +. step,
+      vestingType,
+      startDate,
+      totalTokens,
+    )
+  }
 }
