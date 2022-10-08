@@ -1,36 +1,20 @@
 %%raw(`import './App.css';`)
 
-module Vesting = {
-  type vesting = Linear(string) | Exponential(string)
-
-  let secondsInYear = 365.0 *. 24.0 *. 60.0 *. 60.0
-
-  let linearVesting = (totalTokens, ~totalDuration=secondsInYear *. 2.0, durationElapsed) =>
-    totalTokens *. durationElapsed /. secondsInYear *. 2.0
-
-  let exponentialVesting = (totalTokens, ~totalDuration=secondsInYear *. 4.0, durationElapsed) =>
-    totalTokens *.
-    Js.Math.pow_float(~base=durationElapsed, ~exp=2.0) /.
-    Js.Math.pow_float(~base=totalDuration, ~exp=2.0)
-
-  let calculateVesting = (vestingType: vesting, totalTokens: float, durationElapsed: float) => {
-    switch vestingType {
-    | Linear => linearVesting.formula(totalTokens, durationElapsed)
-    | Exponential => exponentialVesting.formula(totalTokens, durationElapsed)
-    }
-  }
-}
-
 @react.component
 let make = () => {
   let (amount, setAmount) = React.useState(() => "0")
-  let (vestingType, setVestingType) = React.useState(() => Vesting.vestings[0].label)
-  let (vestingStartDate, setVestingStartDate) = React.useState(() => Js.Date.now())
+  let (vestingType, setVestingType) = React.useState(() => Vesting.toLabel(Linear))
+  let (vestingStartDate, setVestingStartDate) = React.useState(() => Dates.getCurrentDateISO())
+  let currentlyVested = Vesting.calculateVesting(
+    Vesting.fromLabel(vestingType),
+    float_of_string(amount),
+    Dates.secondsBetweenDates(Js.Date.fromString(vestingStartDate), Js.Date.make()),
+  )
 
   <div className="App">
     <h1> {React.string("Vesting calculator")} </h1>
-    <div>
-      <label htmlFor="vesting-amount-input"> {React.string("Enter vesting amount:")} </label>
+    <div className="form-field">
+      <label htmlFor="vesting-amount-input"> {React.string("Vesting amount:")} </label>
       <input
         id="vesting-amount-input"
         type_="number"
@@ -41,22 +25,36 @@ let make = () => {
         }}
       />
     </div>
-    <div>
-      <label htmlFor="vesting-start-date"> {React.string("Enter vesting start date:")} </label>
-      <input id="vesting-start-date" type_="date" />
+    <div className="form-field">
+      <label htmlFor="vesting-start-date"> {React.string("Vesting start date:")} </label>
+      <input
+        id="vesting-start-date"
+        type_="date"
+        value=vestingStartDate
+        onChange={evt => {
+          let value = ReactEvent.Form.target(evt)["value"]
+          setVestingStartDate(_prev => value)
+        }}
+      />
     </div>
-    <label htmlFor="duration-select"> {React.string("Select vesting type:")} </label>
-    <select id="duration-select" defaultValue={vestingType}>
-      {React.array(
-        Belt.Array.map(Vesting.vestings, v => {
-          <option key=v.label value=v.label onChange={_evt => setVestingType(_prev => v.label)}>
-            {React.string(v.label)}
-          </option>
-        }),
-      )}
-    </select>
+    <div className="form-field">
+      <label htmlFor="duration-select"> {React.string("Vesting type:")} </label>
+      <select
+        id="duration-select"
+        defaultValue={vestingType}
+        onChange={_evt => {
+          let value = ReactEvent.Form.target(_evt)["value"]
+          setVestingType(_prev => value)
+        }}>
+        {React.array(
+          Belt.Array.map([Vesting.toLabel(Linear), Vesting.toLabel(Exponential)], v => {
+            <option key=v value=v> {React.string(v)} </option>
+          }),
+        )}
+      </select>
+    </div>
     <div>
-      <p> {React.string(`Currently vested: ${amount}`)} </p>
+      <p> {React.string(`Currently vested: ${Belt.Float.toString(currentlyVested)}`)} </p>
     </div>
   </div>
 }
