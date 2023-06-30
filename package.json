@@ -3,15 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@rescript/react": "^0.10.3",
+    "@rescript/react": "^0.11.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
-    "recharts": "^2.1.14",
-    "web-vitals": "^3.0.3"
+    "recharts": "2.1.12",
+    "web-vitals": "^3.3.2"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -43,6 +43,6 @@
   "devDependencies": {
     "@float-capital/rescript-recharts": "^0.1.2",
     "gentype": "^4.5.0",
-    "rescript": "^10.0.1"
+    "rescript": "^10.1.4"
   }
 }

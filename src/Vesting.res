@@ -1,13 +1,13 @@
 type vesting = Linear | Exponential
 type chartPoint = {label: string, value: float}
 
-let secondsInYear = 365.0 *. 24.0 *. 60.0 *. 60.0
-let secondsInMonth = 30.0 *. 24.0 *. 60.0 *. 60.0
+let msInYear = 365.0 *. 24.0 *. 60.0 *. 60.0 *. 1000.0
+let msInMonth = 30.0 *. 24.0 *. 60.0 *. 60.0 *. 1000.0
 
-let linearVesting = (totalTokens, ~totalDuration=secondsInYear *. 2.0, durationElapsed) =>
+let linearVesting = (totalTokens, ~totalDuration=msInYear *. 2.0, durationElapsed) =>
   totalTokens *. durationElapsed /. totalDuration
 
-let exponentialVesting = (totalTokens, ~totalDuration=secondsInYear *. 4.0, durationElapsed) =>
+let exponentialVesting = (totalTokens, ~totalDuration=msInYear *. 4.0, durationElapsed) =>
   totalTokens *.
   Js.Math.pow_float(~base=durationElapsed, ~exp=2.0) /.
   Js.Math.pow_float(~base=totalDuration, ~exp=2.0)
@@ -38,7 +38,7 @@ let fromLabel = (label: string) => {
 
 let rec getChartData = (
   ~currentlyVested=0.0,
-  ~step: float=secondsInMonth,
+  ~step: float=msInMonth,
   ~chartData=[],
   ~currentPoint=0.0,
   vestingType: vesting,
@@ -49,7 +49,7 @@ let rec getChartData = (
     chartData
   } else {
     let vestingPoint = if currentPoint == 0.0 {
-      Js.Date.getTime(startDate) /. 1000.0
+      Js.Date.getTime(startDate)
     } else {
       currentPoint
     }
@@ -57,13 +57,13 @@ let rec getChartData = (
     let vestedAtPoint = calculateVesting(
       vestingType,
       totalTokens,
-      vestingPoint -. Js.Date.getTime(startDate) /. 1000.0,
+      vestingPoint -. Js.Date.getTime(startDate),
     )
     let newChartData = Belt.Array.concat(
       chartData,
       [
         {
-          label: Js.Date.toLocaleDateString(Js.Date.fromFloat(vestingPoint *. 1000.0)),
+          label: Js.Date.toLocaleDateString(Js.Date.fromFloat(vestingPoint)),
           value: vestedAtPoint,
         },
       ],

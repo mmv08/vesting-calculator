@@ -8,13 +8,16 @@ let make = () => {
   let currentlyVested = Vesting.calculateVesting(
     Vesting.fromLabel(vestingType),
     float_of_string(amount),
-    Dates.secondsBetweenDates(Js.Date.fromString(vestingStartDate), Js.Date.make()),
+    Dates.msBetweenDates(Js.Date.fromString(vestingStartDate), Js.Date.make()),
   )
+  Js.Console.log(vestingStartDate)
   let chartData = Vesting.getChartData(
     Vesting.fromLabel(vestingType),
     Js.Date.fromString(vestingStartDate),
     float_of_string(amount),
   )
+
+  Js.Console.log(Dates.getCurrentTimestamp())
 
   <div className="App">
     <h1> {React.string("Vesting calculator")} </h1>

@@ -6,7 +6,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 In the project directory, you can run:
 
-### npm run re:script
+### npm run re:start
 
 Runs the rescript compiler
 
