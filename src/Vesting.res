@@ -1,24 +1,37 @@
 type vesting = Linear | Exponential
 type chartPoint = {label: string, value: float}
 
-let msInYear = 365.0 *. 24.0 *. 60.0 *. 60.0 *. 1000.0
-let msInMonth = 30.0 *. 24.0 *. 60.0 *. 60.0 *. 1000.0
+let linearVestingDuration = 2.0
+let exponentialVestingDuration = 4.0
 
-let linearVesting = (totalTokens, ~totalDuration=msInYear *. 2.0, durationElapsed) =>
+let linearVesting = (totalTokens, durationElapsed, totalDuration) =>
   totalTokens *. durationElapsed /. totalDuration
 
-let exponentialVesting = (totalTokens, ~totalDuration=msInYear *. 4.0, durationElapsed) =>
+let exponentialVesting = (totalTokens, durationElapsed, totalDuration) => {
   totalTokens *.
   Js.Math.pow_float(~base=durationElapsed, ~exp=2.0) /.
   Js.Math.pow_float(~base=totalDuration, ~exp=2.0)
+}
 
-let calculateVesting = (vestingType: vesting, totalTokens: float, durationElapsed: float) => {
+let calculateVesting = (
+  vestingType: vesting,
+  totalTokens: float,
+  durationElapsed: float,
+  totalDuration: float,
+) => {
   let amount = switch vestingType {
-  | Linear => linearVesting(totalTokens, durationElapsed)
-  | Exponential => exponentialVesting(totalTokens, durationElapsed)
+  | Linear => linearVesting(totalTokens, durationElapsed, totalDuration)
+  | Exponential => exponentialVesting(totalTokens, durationElapsed, totalDuration)
   }
 
   amount > totalTokens ? totalTokens : amount
+}
+
+let getVestingEndDate = (vestingType: vesting, startDate: Js.Date.t) => {
+  switch vestingType {
+  | Linear => Dates.addYears(startDate, linearVestingDuration)
+  | Exponential => Dates.addYears(startDate, exponentialVestingDuration)
+  }
 }
 
 let toLabel = (vestingType: vesting) => {
@@ -38,12 +51,13 @@ let fromLabel = (label: string) => {
 
 let rec getChartData = (
   ~currentlyVested=0.0,
-  ~step: float=msInMonth,
+  ~stepMonths=1.0,
   ~chartData=[],
   ~currentPoint=0.0,
   vestingType: vesting,
   startDate: Js.Date.t,
   totalTokens: float,
+  totalDuration: float,
 ): array<chartPoint> => {
   if currentlyVested == totalTokens {
     chartData
@@ -58,6 +72,7 @@ let rec getChartData = (
       vestingType,
       totalTokens,
       vestingPoint -. Js.Date.getTime(startDate),
+      totalDuration,
     )
     let newChartData = Belt.Array.concat(
       chartData,
@@ -69,13 +84,15 @@ let rec getChartData = (
       ],
     )
 
+    let nextVestingPoint = vestingPoint |> Js.Date.fromFloat |> Dates.addMonths(_, stepMonths)
     getChartData(
       ~currentlyVested=vestedAtPoint,
       ~chartData=newChartData,
-      ~currentPoint=vestingPoint +. step,
+      ~currentPoint=nextVestingPoint,
       vestingType,
       startDate,
       totalTokens,
+      totalDuration,
     )
   }
 }
