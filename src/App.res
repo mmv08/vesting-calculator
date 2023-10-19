@@ -13,7 +13,8 @@ let make = () => {
         Js.Date.fromString(vestingStartDate),
       )
       |> Js.Date.fromFloat
-      |> Js.Date.toLocaleDateString,
+      |> Js.Date.toISOString
+      |> Js.String2.substring(~from=0, ~to_=10),
     (vestingType, vestingStartDate),
   )
   let totalDuration = Dates.msBetweenDates(
